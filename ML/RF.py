@@ -1,3 +1,4 @@
+# Author Serkan Güldal 2021.09.19
 from itertools import filterfalse
 import os
 
