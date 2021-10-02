@@ -140,7 +140,7 @@ if __name__ == '__main__':
         prename = 'RF_' + dataname + file + '_'
         ts = time.time()
 
-        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,1501)]
+        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,10)]
     
         score = np.array([i.get() for i in a])
         acc = score[:,0]

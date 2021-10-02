@@ -25,21 +25,25 @@ import time
 import xlwt
 from xlwt import Workbook
 
+import os
+import sys
 
-debug =False
+debug =True
 
 wb = Workbook()
 sheet1 = wb.add_sheet('Sheet 1')
 
 
 
-def data(filename, NumberOfVariables): # Data importer function
-    df=pd.read_csv(filename)
+def data(inputFile, NumberOfVariables): # Data importer function
+    file = open(os.path.dirname(__file__) + '/../datasets/' + rawFile + '/' + inputFile)
+   
+    df=pd.read_csv(file)
     global X
     X = df.values[:,0:NumberOfVariables]
     global y
     y = df.values[:,NumberOfVariables]
-    return(X, y, dataname)
+    return(X, y)
 
 
 def ml(X, y, r): # Machine learning approach
@@ -86,7 +90,7 @@ if __name__ == '__main__':
     print('Number of CPUs available:', mp.cpu_count())
     pool = mp.Pool()
 
-    dataname = 'yeast3_label_class.csv' # Filename needs to be updated!!!!
+    rawFile = 'yeast3_label_class.csv' # Filename needs to be updated!!!!
     NoV = 8 # Number of variables needs to be updated!!!!
 
     row = 1
@@ -136,11 +140,11 @@ if __name__ == '__main__':
         else:
             print(file[1:-4])
 
-        data(dataname + file, NoV)
-        prename = 'SVM_' + dataname + file + '_'
+        data(rawFile + file, NoV)
+
         ts = time.time()
 
-        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,1501)]
+        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,10)]
     
         score = np.array([i.get() for i in a])
         acc = score[:,0]
@@ -175,11 +179,12 @@ if __name__ == '__main__':
         sheet1.write(row, 10, mean(geo))
         sheet1.write(row, 11, mean(aveALL))
         sheet1.write(row, 12, mean(duration))
-        wb.save(dataname + '_AdaBoost.xls')
+        wb.save(rawFile + '_AdaBoost.xls')
         row += 1
 
+
         if debug:
-            print(dataname + file + ' is completed. Here is the summary.')
+            print(rawFile + file + ' is completed. Here is the summary.')
             print("Accuracy:",mean(acc))
             print("Area Under ROC curve:", mean(aucroc))
             print("Area Under the Curve 0:", mean(auc0))
@@ -193,11 +198,17 @@ if __name__ == '__main__':
             print("Arithmetic Mean:", mean(aveALL))        
             print('Time in parallel:', duration)
 
-            ###### Writinng to files ########
+            ###### Writing to files ########
 
             # with open('RF_' + dataname + '_' + 'scores.csv', 'w') as filehandle:
             #     for listitem in score:
             #         filehandle.write('%s\n' % listitem)
+
+            prename = 'AB_' + rawFile + file + '_'
+
+            with open(prename + 'All_Score.csv', 'w') as filehandle:
+                for listitem in score:
+                    filehandle.write('%s\n' % listitem)
 
             with open(prename + 'Accuracy.csv', 'w') as filehandle:
                 for listitem in acc:
