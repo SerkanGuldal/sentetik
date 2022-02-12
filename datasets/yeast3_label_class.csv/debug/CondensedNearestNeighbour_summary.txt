@@ -1,0 +1,12 @@
+              Accuracy: 0.8278145695364238
+  Area Under ROC curve: 0.8771019677996421
+Area Under the Curve 0: 0.17558139534883718
+Area Under the Curve 1: 0.8244186046511628
+                Recall: 0.8244186046511628
+             Precision: 0.8244186046511628
+              F1 Score: 0.8244186046511628
+           Specificity: 0.8244186046511628
+           Sensitivity: 0.8244186046511628
+        Geometric Mean: 0.8244186046511628
+       Arithmetic Mean: 0.7585566178435422
+            Total time: 0.10571694374084473
