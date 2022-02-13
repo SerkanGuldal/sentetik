@@ -1,12 +1,8 @@
 # Author Serkan Güldal 2021.09.19
-from sklearn.cluster import AgglomerativeClustering
-import scipy
-import pandas as pd
-import collections
 import numpy as np
 import os
 import sys
-import random
+
 
 dataname = 'yeast3_label_class.csv' # Filename needs to be updated!!!!
 

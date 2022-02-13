@@ -37,7 +37,6 @@ sheet1 = wb.add_sheet('Sheet 1')
 
 def data(inputFile, NumberOfVariables): # Data importer function
     file = open(os.path.dirname(__file__) + '/../datasets/' + rawFile + '/' + inputFile)
-   
     df=pd.read_csv(file)
     global X
     X = df.values[:,0:NumberOfVariables]
@@ -145,7 +144,7 @@ if __name__ == '__main__':
 
         ts = time.time()
 
-        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,10)]
+        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,1500)]
     
         score = np.array([i.get() for i in a])
         acc = score[:,0]
@@ -209,7 +208,7 @@ if __name__ == '__main__':
             #     for listitem in score:
             #         filehandle.write('%s\n' % listitem)
             
-            prename = os.path.dirname(__file__) + '/../datasets/' + rawFile + '/debug/' + data_type + '_'
+            prename = os.path.dirname(__file__) + '/../datasets/' + rawFile + '/debug/AdaBoost`_' + data_type + '_'
 
             with open(prename + 'All_Score.csv', 'w') as filehandle:
                 for listitem in score:
@@ -277,7 +276,7 @@ if __name__ == '__main__':
                 for listitem in ave:
                     filehandle.write('%s\n' % listitem)
 
-            time.sleep(2)
+            time.sleep(5)
 
             # pyplot.plot(acc)
             # pyplot.plot(ave)
