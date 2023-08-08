@@ -1,0 +1,1 @@
+Central configuration repository.
