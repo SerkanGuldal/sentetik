@@ -1,1 +1,2 @@
+# .github
 Central configuration repository.
