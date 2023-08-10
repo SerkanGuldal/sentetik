@@ -24,7 +24,7 @@ import multiprocessing as mp
 import time
 import xlwt
 from xlwt import Workbook
-
+import os
 
 debug =False
 
@@ -33,13 +33,14 @@ sheet1 = wb.add_sheet('Sheet 1')
 
 
 
-def data(filename, NumberOfVariables): # Data importer function
-    df=pd.read_csv(filename)
+def data(inputFile, NumberOfVariables): # Data importer function
+    file = open(os.path.dirname(__file__) + '/../datasets/' + rawFile + '/' + inputFile)
+    df=pd.read_csv(file)
     global X
     X = df.values[:,0:NumberOfVariables]
     global y
     y = df.values[:,NumberOfVariables]
-    return(X, y, dataname)
+    return(X, y)
 
 
 def ml(X, y, r): # Machine learning approach
@@ -47,7 +48,7 @@ def ml(X, y, r): # Machine learning approach
     if debug:
         print("Round ", r)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.40, random_state = 0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.60, random_state = 42)
     c = SGDClassifier()
     c.fit(X_train, y_train)
     y_pred = c.predict(X_test)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     print('Number of CPUs available:', mp.cpu_count())
     pool = mp.Pool()
 
-    dataname = 'yeast3_label_class.csv' # Filename needs to be updated!!!!
+    rawFile = 'yeast3_label_class.csv' # Filename needs to be updated!!!!
     NoV = 8 # Number of variables needs to be updated!!!!
 
     row = 1
@@ -129,15 +130,16 @@ if __name__ == '__main__':
         '_AGG_WA_CD.csv',
         '_GM_WA_CD.csv',
         '_Heinz.csv',
-        '_Weighted.csv']:
+        '_Weighted.csv',
+        '_OverSampling_Arithmetic_Random.csv']:
 
         if file == '':
             print('Raw')
         else:
             print(file[1:-4])
 
-        data(dataname + file, NoV)
-        prename = 'SGD_' + dataname + file + '_'
+        data(rawFile + file, NoV)
+        
         ts = time.time()
 
         a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,1501)]
@@ -160,8 +162,10 @@ if __name__ == '__main__':
         #Writing all results to a file
         if file == '':
             sheet1.write(row, 0, 'Raw')
+            data_type = 'Raw'
         else:
             sheet1.write(row, 0, file[1:-4])
+            data_type = file[1:-4]
         
         sheet1.write(row, 1, mean(acc))
         sheet1.write(row, 2, mean(aucroc))
@@ -175,11 +179,11 @@ if __name__ == '__main__':
         sheet1.write(row, 10, mean(geo))
         sheet1.write(row, 11, mean(aveALL))
         sheet1.write(row, 12, mean(duration))
-        wb.save(dataname + '_SGD.xls')
+        wb.save(os.path.dirname(__file__) + '/../datasets/' + rawFile + '_SGD.xls')
         row += 1
 
         if debug:
-            print(dataname + file + ' is completed. Here is the summary.')
+            print(rawFile + file + ' is completed. Here is the summary.')
             print("Accuracy:",mean(acc))
             print("Area Under ROC curve:", mean(aucroc))
             print("Area Under the Curve 0:", mean(auc0))
@@ -198,6 +202,8 @@ if __name__ == '__main__':
             # with open('RF_' + dataname + '_' + 'scores.csv', 'w') as filehandle:
             #     for listitem in score:
             #         filehandle.write('%s\n' % listitem)
+
+            prename = os.path.dirname(__file__) + '/../datasets/' + rawFile + '/debug/AdaBoost`_' + data_type + '_'
 
             with open(prename + 'Accuracy.csv', 'w') as filehandle:
                 for listitem in acc:

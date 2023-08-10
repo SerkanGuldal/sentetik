@@ -25,7 +25,6 @@ import time
 import xlwt
 from xlwt import Workbook
 
-import os
 import sys
 
 debug =False
@@ -144,7 +143,7 @@ if __name__ == '__main__':
 
         ts = time.time()
 
-        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,1500)]
+        a = [pool.apply_async(ml, args = (X, y, r)) for r in range(1,1501)]
     
         score = np.array([i.get() for i in a])
         acc = score[:,0]
