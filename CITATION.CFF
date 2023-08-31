@@ -3,7 +3,7 @@ message: "This is a dummy citation until actual one is placed."
 authors:
  - family-names: Güldal
    given-names: Serkan
-   orcıd: https://orcid.org/0000-0000-0000-0000
+   orcid: https://orcid.org/0000-0000-0000-0000
 title: "My Research Software"
 version: 2.0.4
 doi: 00.0000/text.1234
