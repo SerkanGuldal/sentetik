@@ -1,5 +1,5 @@
 from tkinter import Tk
-from gui import GUIApp  # Import the GUIApp class from gui_app module
+from gui.gui import GUIApp  # Import the GUIApp class from gui.gui module
 
 def main():
     root = Tk()
