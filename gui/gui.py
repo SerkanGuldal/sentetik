@@ -124,7 +124,7 @@ class GUIApp:
         feature_selection_label.grid(row=0, column=0, pady=10)
 
         selected_file = self.spin_var.get()
-        selected_file_label = tk.Label(self.root, text=f"Selected File: {selected_file}", font=("Helvetica", 12))
+        selected_file_label = tk.Label(self.root, text=f"Selected File:\n {selected_file}", font=("Helvetica", 12))
         selected_file_label.grid(row=1, column=0, pady=10)
 
         # Create the feature_selection_var and first Combobox
