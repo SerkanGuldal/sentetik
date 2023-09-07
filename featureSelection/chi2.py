@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from sklearn.feature_selection import chi2
+from tabulate import tabulate
 
 def calculate_chi2_and_write_output(input_file):
     def calculate_chi2(input_file):
@@ -21,6 +22,19 @@ def calculate_chi2_and_write_output(input_file):
     output_directory = os.path.abspath(os.path.dirname(__file__)) + f'/../datasets/{input_file}_chi2/'
 
     os.makedirs(output_directory, exist_ok=True)
+
+    # Create a DataFrame for chi2 scores
+    chi2_scores_df = pd.DataFrame({'Feature': df.columns[:-1], 'Chi2 Score': chi2_scores})
+
+    # Write the chi2 scores to a visually appealing CSV file
+    chi2_scores_file = os.path.join(output_directory, f'{input_file}_chi2_scores.csv')
+
+    # Convert the DataFrame to a nicely formatted table
+    chi2_scores_table = tabulate(chi2_scores_df, headers='keys', tablefmt='pretty', showindex=False)
+
+    # Write the table to the CSV file
+    with open(chi2_scores_file, 'w') as f:
+        f.write(chi2_scores_table)
 
     for n in range(1, NoV + 1):
         # Select the top N columns based on chi2 scores

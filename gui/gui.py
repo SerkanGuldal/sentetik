@@ -64,11 +64,6 @@ class GUIApp:
         elif self.current_view_idx == 3:
             self.create_feature_selection_view()
 
-    def list_files(self):
-        files = os.listdir(self.selected_directory)
-        self.file_list.set(" ".join(files))
-        self.spin_box_selection["values"] = files
-
     def on_spin_select(self, event):
         selected_file = self.spin_var.get()
         print(f"Selected file: {selected_file}")
@@ -81,10 +76,29 @@ class GUIApp:
         self.clear_view()
         self.view_labels[self.current_view_idx].grid(row=0, column=0, pady=10)
 
+        # Call the modified list_files method to populate the Combobox
+        self.list_files()
+
         self.spin_box_selection.grid(row=1, column=0, padx=10, pady=5)
 
         self.next_button_selection.config(text="Next", command=self.show_next_view)
         self.next_button_selection.grid(row=2, column=0, pady=10)
+
+    def list_files(self):
+        # Create a list to store the CSV files
+        csv_files = []
+
+        # Walk through the selected directory and its subfolders
+        for root_folder, subfolders, files in os.walk(self.selected_directory):
+            for file in files:
+                if file.endswith('.csv'):
+                    # Remove the "datasets" folder name from the path
+                    file_path = os.path.join(root_folder, file).replace(self.selected_directory + os.sep, "")
+                    csv_files.append(file_path)
+
+        # Convert the list of CSV files to a string and set it as the Combobox values
+        self.spin_box_selection['values'] = csv_files
+
 
     def create_process_view(self):
         self.clear_view()
