@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import PhotoImage
+from tkinter import filedialog  # Import the filedialog module
 import os
 from ttkthemes import ThemedStyle
+import shutil
 
 class GUIApp:
     def __init__(self, root):
@@ -36,7 +38,7 @@ class GUIApp:
         self.root.iconphoto(True, self.logo)
 
         self.spin_var = tk.StringVar()
-        self.spin_box_selection = ttk.Combobox(self.root, textvariable=self.spin_var, values=[], state="readonly")
+        self.spin_box_selection = ttk.Combobox(self.root, textvariable=self.spin_var, values=[], state="readonly", width=30)
         self.spin_box_selection.bind("<<ComboboxSelected>>", self.on_spin_select)
 
         self.feature_selection_var = tk.StringVar()
@@ -47,6 +49,8 @@ class GUIApp:
 
         self.next_button_selection = ttk.Button(self.root, text="Next", command=self.show_next_view, state="disabled")
 
+        self.add_file_button_selection = ttk.Button(self.root, text="Add New Data", command=self.add_file)
+
         self.list_files()
 
         for view in self.views:
@@ -54,6 +58,28 @@ class GUIApp:
             self.view_labels.append(label)
 
         self.create_selection_view()
+
+
+    def add_file(self):
+        # Open a file dialog to select CSV files
+        file_paths = filedialog.askopenfilenames(filetypes=[("CSV Files", "*.csv")])
+
+        if file_paths:
+            for file_path in file_paths:
+                # Get the filename (without path) from the selected file
+                file_name = os.path.basename(file_path)
+
+                # Construct the destination path in the 'datasets' folder
+                destination_path = os.path.join(self.selected_directory, file_name)
+
+                # Copy the selected file to the 'datasets' folder
+                try:
+                    shutil.copy(file_path, destination_path)
+                    # Refresh the list of CSV files in the Combobox
+                    self.list_files()
+                except Exception as e:
+                    print(f"Error copying file: {str(e)}")
+
 
     def show_next_view(self):
         self.current_view_idx = (self.current_view_idx + 1) % len(self.views)
@@ -73,16 +99,20 @@ class GUIApp:
             self.next_button_selection.config(state="disabled")
 
     def create_selection_view(self):
+        self.current_view_idx = 0
         self.clear_view()
         self.view_labels[self.current_view_idx].grid(row=0, column=0, pady=10)
 
         # Call the modified list_files method to populate the Combobox
         self.list_files()
-
         self.spin_box_selection.grid(row=1, column=0, padx=10, pady=5)
 
-        self.next_button_selection.config(text="Next", command=self.show_next_view)
-        self.next_button_selection.grid(row=2, column=0, pady=10)
+        # Create and configure the "Add New Data" button
+        self.add_file_button_selection.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+
+        self.next_button_selection.config(text="Next", command=self.create_process_view)
+        self.next_button_selection.grid(row=2, column=1, pady=10, padx=10)
+
 
     def list_files(self):
         # Create a list to store the CSV files
@@ -96,11 +126,20 @@ class GUIApp:
                     file_path = os.path.join(root_folder, file).replace(self.selected_directory + os.sep, "")
                     csv_files.append(file_path)
 
+        # Calculate the desired width based on the longest file name
+        max_file_name_length = max(len(file) for file in csv_files)
+        desired_width = min(max_file_name_length, 50)  # Limit the width to a maximum of 100
+
+        # Set the width of the Combobox
+        self.spin_box_selection.configure(width=desired_width)
+
         # Convert the list of CSV files to a string and set it as the Combobox values
         self.spin_box_selection['values'] = csv_files
 
 
+
     def create_process_view(self):
+        self.current_view_idx = 1
         self.clear_view()
         self.view_labels[self.current_view_idx].grid(row=0, column=0, pady=10)
 
@@ -112,15 +151,18 @@ class GUIApp:
         self.process_list()
 
         self.back_button_process = ttk.Button(self.root, text="Back", command=self.show_selection_view)
-        self.back_button_process.grid(row=3, column=0, padx=10, pady=10, sticky="sw")  # Move Back button to row 3
+        self.back_button_process.grid(row=3, column=0, padx=10, pady=10, sticky="w")
 
         self.next_button_process = ttk.Button(self.root, text="Next", command=self.selected_process, state="disabled")
-        self.next_button_process.grid(row=3, column=1, padx=10, pady=10, sticky="se")  # Move Next button to row 3
+        self.next_button_process.grid(row=3, column=1, padx=10, pady=10, sticky="e")
 
         self.process_var.trace_add('write', self.check_radio_selection)
 
         self.spin_box_selection.grid_forget()
         self.next_button_selection.grid_forget()
+        self.add_file_button_selection.grid_forget()
+
+
 
     def check_radio_selection(self, *args):
         selected_process = self.process_var.get()
@@ -155,6 +197,7 @@ class GUIApp:
 
         self.spin_box_selection.grid_forget()
         self.next_button_selection.grid_forget()
+
 
     def hide_feature_selection_view(self):
         for widget in self.root.winfo_children():
@@ -197,7 +240,7 @@ class GUIApp:
 
         self.next_button_selection.grid_forget()
         self.spin_box_selection.grid_forget()
-        self.process_combobox.grid_foraget()
+
 
     def show_feature_selection_view(self):
         self.current_view_idx = 3
@@ -234,8 +277,16 @@ class GUIApp:
 
         self.spin_box_selection.grid(row=1, column=0, padx=10, pady=5)
 
+        # Create and configure the "Add New Data" button
+        self.add_file_button_selection = ttk.Button(self.root, text="Add New Data", command=self.add_file)
+        self.add_file_button_selection.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        
         self.next_button_selection.config(text="Next", command=self.show_next_view)
-        self.next_button_selection.grid(row=2, column=0, pady=10)
+        self.next_button_selection.grid(row=2, column=1, pady=10, padx=10)
+
+        self.back_button_process.grid_forget()
+
+
 
     def show_process_view(self):
         self.current_view_idx = 1
