@@ -35,15 +35,18 @@ def calculate_chi2_and_write_output(input_file):
     # Sort the columns by their chi2 scores in descending order
     sorted_columns = sorted(range(NoV), key=lambda i: chi2_scores[i], reverse=True)
 
-    # Create a directory with a fixed name
-    output_directory = os.path.abspath(os.path.dirname(__file__)) + f'/../datasets/{input_file}_chi2/'
+    # Create the "datasets" folder if it doesn't exist
+    datasets_folder = os.path.abspath(os.path.dirname(__file__)) + '/../datasets/'
+    os.makedirs(datasets_folder, exist_ok=True)
 
+    # Create a directory for the chi2 results specific to this input file
+    output_directory = os.path.join(datasets_folder, f'{input_file}_chi2')
     os.makedirs(output_directory, exist_ok=True)
 
     # Create a DataFrame for chi2 scores
     chi2_scores_df = pd.DataFrame({'Feature': df.columns[:-1], 'Chi2 Score': chi2_scores})
 
-    # Write the chi2 scores to a visually appealing CSV file
+    # Write the chi2 scores to a visually appealing CSV file in the "datasets" folder
     chi2_scores_file = os.path.join(output_directory, f'{input_file}_chi2_scores.csv')
 
     # Convert the DataFrame to a nicely formatted table
@@ -53,6 +56,22 @@ def calculate_chi2_and_write_output(input_file):
     with open(chi2_scores_file, 'w') as f:
         f.write(chi2_scores_table)
 
+    # Write the chi2 scores to a simple CSV file in the "datasets" folder
+    chi2_scores_csv_file = os.path.join(datasets_folder, f'{input_file}_feature_extraction_scores.csv')
+    if os.path.exists(chi2_scores_csv_file):
+        # If the file already exists, update the data for the representing keys
+        existing_scores_df = pd.read_csv(chi2_scores_csv_file, index_col='Feature', dtype={'Chi2 Score': str})
+        for feature, score in zip(chi2_scores_df['Feature'], chi2_scores_df['Chi2 Score']):
+            if feature in existing_scores_df.index:
+                existing_scores_df.loc[feature, f'Chi2 Score'] = score
+            else:
+                existing_scores_df.loc[feature] = [''] * NoV + [score]
+        existing_scores_df.to_csv(chi2_scores_csv_file)
+    else:
+        chi2_scores_df.to_csv(chi2_scores_csv_file, index=False)
+
+
+
     for n in range(1, NoV + 1):
         # Select the top N columns based on chi2 scores
         selected_columns = sorted_columns[:n]
@@ -60,10 +79,10 @@ def calculate_chi2_and_write_output(input_file):
         # Create a DataFrame with the selected columns
         selected_df = df.iloc[:, selected_columns]
 
-        # Write the selected columns to a CSV file
+        # Write the selected columns to a CSV file under the specific input file's directory
         output_file = os.path.join(output_directory, f'{input_file}_chi2_{n}.csv')
         selected_df.to_csv(output_file, index=False)
-        print(f'Wrote {n} highest scoring columns to {output_file}')
+        print(f'Wrote {n} highest-scoring columns to {output_file}')
 
 if __name__ == '__main__':
     rawFile = 'yeast3_label_class.csv'  # Update with your CSV file name
