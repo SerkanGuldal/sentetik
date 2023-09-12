@@ -5,6 +5,7 @@ from tkinter import filedialog  # Import the filedialog module
 import os
 from ttkthemes import ThemedStyle
 import shutil
+import subprocess
 
 class GUIApp:
     def __init__(self, root):
@@ -40,9 +41,6 @@ class GUIApp:
         self.spin_var = tk.StringVar()
         self.spin_box_selection = ttk.Combobox(self.root, textvariable=self.spin_var, values=[], state="readonly", width=30)
         self.spin_box_selection.bind("<<ComboboxSelected>>", self.on_spin_select)
-
-        self.feature_selection_var = tk.StringVar()
-        self.feature_selection_combobox = ttk.Combobox(self.root, textvariable=self.feature_selection_var, values=["Chi2", "Second Method"], state="readonly")
 
         self.second_combobox_var = tk.StringVar()
         self.second_combobox = ttk.Combobox(self.root, textvariable=self.second_combobox_var, values=["Option 1", "Option 2"], state="readonly")
@@ -171,6 +169,7 @@ class GUIApp:
         else:
             self.next_button_process.config(state="disabled")
 
+    # Modify create_feature_selection_view method to store run_button as an instance variable
     def create_feature_selection_view(self):
         self.clear_view()
         if hasattr(self, 'selected_file_label'):
@@ -188,15 +187,45 @@ class GUIApp:
         feature_selection_combobox = ttk.Combobox(self.root, textvariable=self.feature_selection_var, values=["Chi2", "Second Method"])
         feature_selection_combobox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
+        # Create the "Run" button and set its initial state to "disabled"
+        self.run_button = ttk.Button(self.root, text="Run", command=lambda: self.run_feature_selection(selected_file))
+        self.run_button.grid(row=3, column=1, padx=10, pady=10, sticky="e")
+        self.run_button.configure(state="disabled")  # Disable the button initially
+
         back_button_feature_selection = ttk.Button(self.root, text="Back", command=self.hide_feature_selection_view)
         back_button_feature_selection.grid(row=3, column=0, padx=10, pady=10, sticky="w")
 
-        # Add the "Run" button at the bottom right
-        run_button = ttk.Button(self.root, text="Run")
-        run_button.grid(row=3, column=1, padx=10, pady=10, sticky="e")
+        # Bind the event handler to the Combobox
+        feature_selection_combobox.bind("<<ComboboxSelected>>", self.update_run_button_state)
 
         self.spin_box_selection.grid_forget()
         self.next_button_selection.grid_forget()
+
+
+
+
+    # Event handler to update the state of the "Run" button
+    def update_run_button_state(self, event):
+        selected_feature_method = self.feature_selection_var.get()
+        
+        if selected_feature_method:
+            self.run_button.configure(state="active")  # Enable the button
+        else:
+            self.run_button.configure(state="disabled")  # Disable the button
+
+
+    # Add this method to handle the "Run" button click
+    def run_feature_selection(self, selected_file):
+        selected_feature_method = self.feature_selection_var.get()
+
+        if selected_feature_method == "Chi2":
+            # Call the chi2.py script using subprocess with the selected file as input
+            subprocess.run(["python", "featureSelection/chi2.py", selected_file])
+
+        # You can add similar code for other feature selection methods here
+
+
+
 
 
     def hide_feature_selection_view(self):
