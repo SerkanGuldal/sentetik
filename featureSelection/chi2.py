@@ -4,6 +4,23 @@ from sklearn.feature_selection import chi2
 from tabulate import tabulate
 
 def calculate_chi2_and_write_output(input_file):
+    """
+    Feature Selection Using Chi-squared (chi2) Test
+    
+    This script performs feature selection using the chi-squared (chi2) test, a statistical method that measures the 
+    dependency between features and the target variable. It is particularly useful for selecting relevant features 
+    for classification tasks. Features are ranked based on their chi2 scores, with higher scores indicating higher 
+    relevance.
+    
+    Dataset Format:
+    - Features are in columns preceding the label column.
+    - The label column is the last column.
+    - There are no ordinal numbers in the dataset.
+    
+    Parameters:
+    - input_file (str): The name of the input CSV file containing your dataset.
+    """
+    
     def calculate_chi2(input_file):
         path = os.path.abspath(os.path.dirname(__file__) + '/../datasets/' + input_file)
         df = pd.read_csv(path)

@@ -97,8 +97,9 @@ class GUIApp:
             self.next_button_selection.config(state="disabled")
 
     def create_selection_view(self):
-        self.current_view_idx = 0
         self.clear_view()
+        self.current_view_idx = 0
+
         self.view_labels[self.current_view_idx].grid(row=0, column=0, pady=10)
 
         # Call the modified list_files method to populate the Combobox
@@ -125,8 +126,13 @@ class GUIApp:
                     csv_files.append(file_path)
 
         # Calculate the desired width based on the longest file name
-        max_file_name_length = max(len(file) for file in csv_files)
-        desired_width = min(max_file_name_length, 50)  # Limit the width to a maximum of 100
+        if not csv_files:
+            # Handle the case where no CSV files are found
+            max_file_name_length = 30  # Set a default width of 30 characters
+        else:
+            max_file_name_length = max(len(file) for file in csv_files)
+
+        desired_width = min(max_file_name_length, 300)  # Limit the width to a maximum of 100
 
         # Set the width of the Combobox
         self.spin_box_selection.configure(width=desired_width)
@@ -139,6 +145,9 @@ class GUIApp:
     def create_process_view(self):
         self.current_view_idx = 1
         self.clear_view()
+        self.spin_box_selection.grid_forget()
+        self.next_button_selection.grid_forget()
+
         self.view_labels[self.current_view_idx].grid(row=0, column=0, pady=10)
 
         selected_file = self.spin_var.get()
@@ -172,37 +181,35 @@ class GUIApp:
     # Modify create_feature_selection_view method to store run_button as an instance variable
     def create_feature_selection_view(self):
         self.clear_view()
+        self.process_combobox.grid_forget()
+        
         if hasattr(self, 'selected_file_label'):
             self.selected_file_label.grid_forget()
 
-        feature_selection_label = tk.Label(self.root, text="Feature Selection", font=("Helvetica", 14, "bold"))
-        feature_selection_label.grid(row=0, column=0, pady=10)
+        self.feature_selection_label = tk.Label(self.root, text="Feature Selection", font=("Helvetica", 14, "bold"))
+        self.feature_selection_label.grid(row=0, column=0, pady=10)
 
         selected_file = self.spin_var.get()
-        selected_file_label = tk.Label(self.root, text=f"Selected File:\n {selected_file}", font=("Helvetica", 12))
-        selected_file_label.grid(row=1, column=0, pady=10)
+        self.selected_file_label = tk.Label(self.root, text=f"Selected File:\n {selected_file}", font=("Helvetica", 12))
+        self.selected_file_label.grid(row=1, column=0, pady=10)
 
         # Create the feature_selection_var and first Combobox
         self.feature_selection_var = tk.StringVar()
-        feature_selection_combobox = ttk.Combobox(self.root, textvariable=self.feature_selection_var, values=["Chi2", "Second Method"])
-        feature_selection_combobox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        self.feature_selection_combobox = ttk.Combobox(self.root, textvariable=self.feature_selection_var, values=["Chi2", "Second Method"])
+        self.feature_selection_combobox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
         # Create the "Run" button and set its initial state to "disabled"
         self.run_button = ttk.Button(self.root, text="Run", command=lambda: self.run_feature_selection(selected_file))
         self.run_button.grid(row=3, column=1, padx=10, pady=10, sticky="e")
         self.run_button.configure(state="disabled")  # Disable the button initially
 
-        back_button_feature_selection = ttk.Button(self.root, text="Back", command=self.hide_feature_selection_view)
-        back_button_feature_selection.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+        # Create the "Back" button and set its initial state to "disabled"
+        self.back_button_feature_selection = ttk.Button(self.root, text="Back", command=self.hide_feature_selection_view)
+        self.back_button_feature_selection.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+   
 
         # Bind the event handler to the Combobox
-        feature_selection_combobox.bind("<<ComboboxSelected>>", self.update_run_button_state)
-
-        self.spin_box_selection.grid_forget()
-        self.next_button_selection.grid_forget()
-
-
-
+        self.feature_selection_combobox.bind("<<ComboboxSelected>>", self.update_run_button_state)
 
     # Event handler to update the state of the "Run" button
     def update_run_button_state(self, event):
@@ -222,9 +229,15 @@ class GUIApp:
             # Call the chi2.py script using subprocess with the selected file as input
             subprocess.run(["python", "featureSelection/chi2.py", selected_file])
 
-        # You can add similar code for other feature selection methods here
 
+        self.run_button.destroy()
+        self.back_button_feature_selection.destroy()
+        self.feature_selection_combobox.destroy()
+        self.selected_file_label.destroy()
+        self.feature_selection_label.destroy()
 
+        # After running the feature selection, change the view to the selection view
+        self.create_selection_view()
 
 
 
@@ -279,13 +292,15 @@ class GUIApp:
             self.process_var = tk.StringVar()
 
             # Create a Combobox widget for process selection
-            process_combobox = ttk.Combobox(self.root, textvariable=self.process_var, values=["Feature Selection", "Machine Learning"])
-            process_combobox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+            self.process_combobox = ttk.Combobox(self.root, textvariable=self.process_var, values=["Feature Selection", "Machine Learning"])
+            self.process_combobox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
 
     def show_selection_view(self):
         self.current_view_idx = 0
         self.clear_view()
+        self.process_combobox.grid_forget()
+
         self.view_labels[self.current_view_idx].grid(row=0, column=0, pady=10, sticky="n")
 
         if hasattr(self, 'selected_file_label'):
