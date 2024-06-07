@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
 
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from imblearn.metrics import *
 
 from collections import Counter
@@ -26,7 +26,7 @@ import multiprocessing as mp
 import time
 import openpyxl
 
-debug = True # It provides more detailed output for debugging and extented analysis.
+debug = False # It provides more detailed output for debugging and extented analysis.
 
 def data(inputFile): # Data importer function
     file = open(os.path.dirname(__file__) + '/../datasets/' + inputFile)
@@ -37,28 +37,15 @@ def data(inputFile): # Data importer function
     y = df.values[:,-1]
     return(X, y)
 
-print_feature_importance_once = True
 def ml(X, y, r): # Machine learning approach
-    global print_feature_importance_once
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.6, random_state=42, shuffle=True, stratify=y)
-    c = AdaBoostClassifier(random_state=42, algorithm="SAMME")
-    c.fit(X_train, y_train)
-    y_pred = c.predict(X_test)
-
+    
     if debug:
         print("Round ", r)
 
-        if print_feature_importance_once:
-            # get importance
-            importance = c.feature_importances_
-            # summarize feature importance
-            for i,v in enumerate(importance):
-                print('Feature: %0d, Score: %.5f' % (i,v))
-            # plot feature importance
-            pyplot.bar([x for x in range(len(importance))], importance)
-            pyplot.show()
-            print_feature_importance_once = False
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.6, random_state=42, shuffle=True, stratify=y)
+    c = KNeighborsClassifier()
+    c.fit(X_train, y_train)
+    y_pred = c.predict(X_test)
 
     # Measurements
     Accuracy = accuracy_score(y_test, y_pred)    
@@ -89,13 +76,13 @@ def moving_average(x):
 
 
 if __name__ == '__main__':
-    
-    input_raw = 'pima.csv' # Original filename needs to be updated!!!!
-    input = input_raw + '_3_SMOTE.csv' # Used modification names needs to be added if there is any.
+
+    input_raw = 'page-blocks0.csv' # Original filename needs to be updated!!!!
+    input = input_raw + '_10_SMOTE.csv' # Used modification names needs to be added if there is any.
     print(input)
 
     # Load the existing Excel file or create a new one if it doesn't exist
-    excel_file_path = os.path.dirname(__file__) + '/../ML_Results/' + input_raw + '_AdaBoost.xlsx'
+    excel_file_path = os.path.dirname(__file__) + '/../ML_Results/' + input_raw + '_kNN.xlsx'
     if os.path.exists(excel_file_path):
         wb = openpyxl.load_workbook(excel_file_path)
     else:
@@ -196,7 +183,6 @@ if __name__ == '__main__':
             print("Reached the highest value of r. ML result may not be correct?!\n")
 
 
-
     score = np.array(a)
     acc = score[:,0]
     aucroc = score[:,1]
@@ -249,14 +235,14 @@ if __name__ == '__main__':
         #     for listitem in score:
         #         filehandle.write('%s\n' % listitem)
 
-        debug_folder_path = os.path.dirname(__file__) + '/../ML_Results/' + input + '/AdaBoost_debug'
+        debug_folder_path = os.path.dirname(__file__) + '/../ML_Results/' + input + '/kNN_debug'
 
         if not os.path.exists(debug_folder_path):
             # Create the folder
             Path(debug_folder_path).mkdir(parents=True, exist_ok=True)
 
 
-        prename = debug_folder_path + '/ADaBoost_' + data_type + '_'
+        prename = debug_folder_path + '/kNN_' + data_type + '_'
 
         with open(prename + 'All_Score.csv', 'w') as filehandle:
             for listitem in score:

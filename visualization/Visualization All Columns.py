@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 
-filename = 'yeast3\yeast3_label_class.csv_Weighted.csv'
+filename = 'datasets\yeast3_label_class.csv'
 
 df = pd.read_csv(filename)
 

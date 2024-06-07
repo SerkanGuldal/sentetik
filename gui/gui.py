@@ -195,7 +195,7 @@ class GUIApp:
 
         # Create the feature_selection_var and first Combobox
         self.feature_selection_var = tk.StringVar()
-        self.feature_selection_combobox = ttk.Combobox(self.root, textvariable=self.feature_selection_var, values=["Chi2", "Second Method"])
+        self.feature_selection_combobox = ttk.Combobox(self.root, textvariable=self.feature_selection_var, values=["Chi2", "Mutual Information", "Recursive Feature Elimination", "L1 Regularization (Lasso)"])
         self.feature_selection_combobox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
         # Create the "Run" button and set its initial state to "disabled"
@@ -228,6 +228,12 @@ class GUIApp:
         if selected_feature_method == "Chi2":
             # Call the chi2.py script using subprocess with the selected file as input
             subprocess.run(["python", "featureSelection/chi2.py", selected_file])
+        elif selected_feature_method == "Mutual Information":
+            subprocess.run(["python", "featureSelection/mutual.py", selected_file])
+        elif selected_feature_method == "Recursive Feature Elimination":
+            subprocess.run(["python", "featureSelection/RFE.py", selected_file])
+        elif selected_feature_method == "L1 Regularization (Lasso)":
+            subprocess.run(["python", "featureSelection/lasso.py", selected_file])
 
 
         self.run_button.destroy()

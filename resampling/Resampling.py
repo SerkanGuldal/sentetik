@@ -23,16 +23,12 @@ print("\nOriginal class distribution is ", sorted(Counter(y).items()))
 
 for method in [
     'ADASYN',
-    'BorderlineSMOTE',
     'ClusterCentroids',
     'CondensedNearestNeighbour',
     'RandomOverSampler',
     'RandomUnderSampler',
-    'SMOTE',
     'SMOTEENN',
-    'SMOTEN',
-    'SMOTETomek',
-    'SVMSMOTE']:
+    'SMOTETomek']:
             
     sm = eval(method)(random_state=42)
     X_res, y_res = sm.fit_resample(X, y)
