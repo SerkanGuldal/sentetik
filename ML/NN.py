@@ -100,7 +100,7 @@ if __name__ == '__main__':
         cell_value = sheet.cell(row=row, column=1).value
         if cell_value == input:
             input_row = row
-            print(f"Previous results are in line {row}. They will be overwritten!!!")
+            print(f"\nPrevious results are in line {row}. They will be overwritten!!!")
             break
     else:
         # Input value not found, write to the next empty row

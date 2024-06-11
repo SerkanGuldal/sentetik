@@ -26,7 +26,7 @@ import multiprocessing as mp
 import time
 import openpyxl
 
-debug = True # It provides more detailed output for debugging and extented analysis.
+debug = False # It provides more detailed output for debugging and extented analysis.
 
 def data(inputFile): # Data importer function
     file = open(os.path.dirname(__file__) + '/../datasets/' + inputFile)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         cell_value = sheet.cell(row=row, column=1).value
         if cell_value == input:
             input_row = row
-            print(f"Previous results are in line {row}. They will be overwritten!!!")
+            print(f"\n Previous results are in line {row}. They will be overwritten!!!")
             break
     else:
         # Input value not found, write to the next empty row

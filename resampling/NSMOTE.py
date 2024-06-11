@@ -76,8 +76,9 @@ def load_dataset_with_header_check(dataname):
     return data
 
 
-num_sample = 2 # Number of samples to be used for synthetic data generation
-dataname = 'page-blocks0.csv'
+num_sample = 10 # Number of samples to be used for synthetic data generation
+num_sample_considered = 2*num_sample # Number of samples to be considered for selecting samples from
+dataname = 'pima.csv'
 
 file = load_dataset_with_header_check(dataname)
 
@@ -101,57 +102,76 @@ majority = file[majority_index,:][0]
 N_majority = majority.shape[0]
 N_minority = minority.shape[0]
 
-print('Majority class is ' + str(label[0]) + '. Number of majority is ' + str(N_majority))
-print('Minority class is ' + str(label[1]) + '. Number of minority is ' + str(N_minority))
+print('Majority class is ' + str(label[index_of_the_majority]) + '. Number of majority is ' + str(N_majority))
+print('Minority class is ' + str(label[index_of_the_minority]) + '. Number of minority is ' + str(N_minority))
 print("\n")
 
 needed =int(N_majority - N_minority)
 print(str(needed) + ' datapoints need to be generated.\n')
 
-random_sample_list = []
-for i in range(needed):
-    random_samples = np.random.randint(0, N_minority, num_sample)
-    random_sample_list.append(np.ndarray.tolist(random_samples))
+# Calculates distances between the samples
+distances = {}
+num_same_sample = 0
+# Write the header row to the CSV file
+with open('datasets/' + dataname + '_distances.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['Point 1', 'Point 2', 'Distance'])
 
-print(str(len(random_sample_list)) + ' sample group are selected to be proceed.')
-print("Each group has", num_sample, "samples.\n")
-
-
-
-
-import numpy as np
-
-pairs = {}
-for i in range(10):
-    key = tuple(minority[i])
-    pairs[key] = []
-    for j in range(10):  # Avoid comparing the same pairs twice
+for i in range(len(minority)):
+    key = i
+    distances[key] = []
+    for j in range(len(minority)):
         if not np.array_equal(minority[i], minority[j]):
             dist = euclidean(minority[i], minority[j])
-            pairs[key].append((tuple(minority[i]), tuple(minority[j]), dist))
+            distances[key].append((list(minority[i]), list(minority[j]), dist))
+        else:
+            if i!= j:   # If there are identical pairs, prints the index of the pair.
+                print("Same pair")
+                print("index 1 " + str(i))
+                print(list(minority[i]))
+                print("index 2 " + str(j))
+                print(list(minority[j]), "\n")
+                num_same_sample += 1
 
-    pairs[key].sort(key=lambda x: x[2])
-    pairs[key] = pairs[key][:5]
+    distances[key].sort(key=lambda x: x[2])
 
+    # Write the distances to a CSV file
+    with open('datasets/' + dataname + '_distances.csv', 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        distance_list = distances[key]
+        for point1, point2, dist in distance_list:
+            writer.writerow([str(point1), str(point2), dist])
+    
+    distances[key] = distances[key][:num_sample_considered]  # Keep the closest num_sample_considered samples to key sample.
 
-
-# The file path
-file_path = 'datasets/' + dataname + '_pairs.txt'
-
-# Write the pairs dictionary to a text file
-with open(file_path, "w") as file_pair:
-    for key, values in pairs.items():
-        file_pair.write(f"{key}:\n")
-        for value in values:
-            file_pair.write(f"  {value[1]} - Distance: {value[2]}\n")
-
-print(f"pairs have been written to {file_path}")
+print("Same pairs flag is raised " + str(num_same_sample) + " times.") # Make sure it is right! Test is needed.
 
 
 
 
+# Groups the samples to be used for synthetic data generation
+used_samples_list = [] # all the sample groups to be used to generate sythetic data
+for i in range(needed):
+    for key in range(len(distances)):
+        reference_sample_key = key # Reference sample
+        random_reference_group = np.random.choice(range(num_sample_considered), size=num_sample-1, replace=False)
+        used_samples = [] # Creates data groups to be used
+        used_samples.append(list(distances[reference_sample_key][0][0])) # Key sample to start
+
+        for j in random_reference_group: # Samples to generate synthetic data
+            used_samples.append(list(distances[reference_sample_key][j][1]))
+        used_samples_list.append(used_samples)
+
+        if len(used_samples_list) == needed:
+                break
+
+    if len(used_samples_list) == needed:
+        break
 
 
+
+print(str(len(used_samples_list)) + ' sample group are selected to be proceed.')
+print("Each group has", num_sample, "samples.\n")
 
 
 synthetics = []
@@ -159,12 +179,13 @@ printed_new = False
 printed_sample = False
 printed_alpha = False
 
-for i in random_sample_list:
-    samples = minority[i,:]
+for i in range(len(used_samples_list)):
+    samples = used_samples_list[i]
+
 
     if not printed_sample:
         colorama.init()
-        print(f"{Fore.YELLOW}{Style.BRIGHT}First selected random sample group.{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}{Style.BRIGHT}First selected sample group.{Style.RESET_ALL}")
         colorama.deinit()
         print(samples, "\n")
         printed_sample = True
@@ -179,9 +200,9 @@ for i in random_sample_list:
         print(random_nums, "\n")
         printed_alpha = True
 
-    for j in range(len(random_nums)):        
-        product = random_nums[j]*samples[j] # product: each sample multiplied by its corresponding alpha.
-        new += product                      # new: generated synthetic data.
+    for j in range(len(random_nums)):
+        product = [element * random_nums[j] for element in samples[j]] # product: each sample multiplied by its corresponding alpha.
+        new = [new[i] + product[i] for i in range(len(new))] # new: generated synthetic data.
 
     if not printed_new:
         colorama.init()
@@ -191,11 +212,11 @@ for i in random_sample_list:
         print("\n")
         printed_new = True
 
-    new = np.ndarray.tolist(new)
+    # new = np.ndarray.tolist(new)
     synthetics.append(new)
 
 synthetics = np.asarray(synthetics)
-synthetics[:, -1] = label[index_of_the_minority]
+synthetics[:, -1] = label[index_of_the_minority] # Update the label of synthetic data becuase synthetic generation generates different labels.	
 
 
 size = np.shape(synthetics)
